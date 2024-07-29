@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,7 @@ import java.net.http.HttpRequest;
 
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
 
 	@Autowired
@@ -30,9 +32,12 @@ public class UserController {
 	
 	@PostMapping("register")
 	public User register(@RequestBody User user) {
-	  return service.saveUser(user);
+		try {
+			return service.saveUser(user);
+		} catch (Exception e) {
+			return null;
+		}
 	}
-
 	@PostMapping("login")
 	public String login(@RequestBody User user, HttpServletRequest request){
 
@@ -40,9 +45,7 @@ public class UserController {
 				.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
 
 		if(authentication.isAuthenticated()) {
-			String token = jwtService.generateToken(user.getUsername());
-			request.getSession().setAttribute("Authorization", token);
-			return token;
+			return jwtService.generateToken(user.getUsername());
 		}
 		else
 			return "Login Failed";
