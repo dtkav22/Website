@@ -28,12 +28,12 @@ public class UserController {
 	@Autowired
 	AuthenticationManager authenticationManager;
 	
-	@PostMapping("register")
+	@PostMapping("/register")
 	public User register(@RequestBody User user) {
 	  return service.saveUser(user);
 	}
 
-	@PostMapping("login")
+	@PostMapping("/login")
 	public String login(@RequestBody User user, HttpServletRequest request){
 
 		Authentication authentication = authenticationManager
