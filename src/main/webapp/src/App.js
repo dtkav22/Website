@@ -1,43 +1,18 @@
-import {useEffect, useState} from 'react';
-function App() {
-    const [username, setUserName] = useState("");
-    const [password, setPassword] = useState("");
-    const [token, setToken] = useState("");
-    const Login = (event) => {
-        event.preventDefault();
-        const json = {
-            "username" : username,
-            "password" : password
-        };
-        fetch('http://localhost:8080/login', {
-            method : 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body : JSON.stringify(json)
-        })
-            .then(response => response.text())
-            .then(data => setToken("Bearer " + data))
-            .catch(error => console.error('Error fetching data:', error));
-    }
-  return (
-      <div className="App">
-        <h1>Welcome to Xuxulo-Sandzr Website</h1>
-        <p>Please log in.</p>
-        <form onSubmit={Login}>
-          <ol>
-            User Name: <input type="input" onChange={(e) => setUserName(e.target.value)}/>
-          </ol>
-          <ol>
-            Password: <input type="password" onChange={(e) => setPassword(e.target.value)}/>
-            <input type="submit" value="Login"/>
-          </ol>
-        </form>
-        <a href="/CreateAccount"><p>Create New Account</p></a>
-      </div>
-  );
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import Login from './Login';
+import Register from "./Register";
+import Home from "./Home";
+import Layout from "./Layout";
+export default function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<Layout />}>
+                    <Route index element={<Login />} />
+                    <Route path="Register" element={<Register />} />
+                    <Route path="Home" element={<Home />} />
+                </Route>
+            </Routes>
+        </BrowserRouter>
+    );
 }
-
-
-
-export default App;
