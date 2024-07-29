@@ -32,9 +32,12 @@ public class UserController {
 	
 	@PostMapping("register")
 	public User register(@RequestBody User user) {
-	  return service.saveUser(user);
+		try {
+			return service.saveUser(user);
+		} catch (Exception e) {
+			return null;
+		}
 	}
-
 	@PostMapping("login")
 	public String login(@RequestBody User user, HttpServletRequest request){
 
