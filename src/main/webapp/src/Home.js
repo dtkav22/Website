@@ -1,19 +1,25 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Stomp from "stompjs";
 import SockJS from "sockjs-client";
-import Button from "@mui/material/Button";
-import { List, Avatar, ListItem, TextField, ListItemText, ListItemAvatar, Typography } from "@mui/material";
 
 export default function Home() {
-    const [stompClient, setStompClient] = useState(null);
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const [username, setUsername] = useState("");
+    const stompClientRef = useRef(null); // Use ref to persist stompClient across renders
 
     useEffect(() => {
+        if (!localStorage.getItem("token")) {
+            document.getElementById("logOut").click();
+            return;
+        }
         const socket = new SockJS("http://localhost:8080/ws");
         const client = Stomp.over(socket);
+        if(stompClientRef.current) {
+            return;
+        }
+        stompClientRef.current = client;
         const headers = {
             "Authorization": localStorage.getItem("token")
         };
@@ -22,7 +28,7 @@ export default function Home() {
             headers,
             () => {
                 console.log('Connected to WebSocket');
-                client.subscribe('/topic/messages', (message) => {
+                client.subscribe(`/topic/messages/${localStorage.getItem("username")}`, (message) => {
                     const receivedMessage = JSON.parse(message.body);
                     setMessages((prevMessages) => [...prevMessages, receivedMessage]);
                 });
@@ -31,13 +37,13 @@ export default function Home() {
                 console.error('Error connecting to WebSocket', error);
             }
         );
-        setStompClient(client);
 
         return () => {
-            if (stompClient && stompClient.connected) {
-                stompClient.disconnect(() => {
+            if (stompClientRef.current && stompClientRef.current.connected) {
+                stompClientRef.current.disconnect(() => {
                     console.log('Disconnected from WebSocket');
                 });
+                stompClientRef.current = null;
             }
         };
     }, []);
@@ -51,12 +57,13 @@ export default function Home() {
     };
 
     const sendMessage = () => {
-        if (message.trim()) {
+        if (message.trim() && stompClientRef.current) {
             const chatMessage = {
-                username,
-                message
+                "sender": username,
+                "receiver": username, // Adjust as needed
+                "message": message
             };
-            stompClient.send('/app/chat', {}, JSON.stringify(chatMessage));
+            stompClientRef.current.send('/app/chat', {}, JSON.stringify(chatMessage));
             setMessage("");
         }
     };
@@ -70,24 +77,24 @@ export default function Home() {
 
     return (
         <div className="App">
-            <input type="button" onClick={logOut} value="Log-Out" />
-            <List>
-                {messages.map((msg, index) => (
-                    <ListItem key={index}>
-                        <ListItemAvatar>
-                            <Avatar>{msg.username.charAt(0)}</Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary={<Typography variant="subtitle1" gutterBottom>{msg.username}</Typography>}
-                            secondary={msg.message}
-                        />
-                    </ListItem>
+            <input id="logOut" type="button" onClick={logOut} value="Log-Out" />
+            <div id="chat">
+                {messages.map((val, index) => (
+                    <p key={index}>{val.sender}: {val.message}</p>
                 ))}
-            </List>
+            </div>
             <div style={{ display: "flex", alignItems: "center" }}>
-                <TextField id="standard-basic" label="username" variant="standard" value={username} onChange={usernameChange} />
-                <TextField id="standard-basic" label="message" variant="standard" value={message} onChange={messageChange} />
-                <Button variant="contained" onClick={sendMessage}>Send Message</Button>
+                <label>
+                    Enter Username:
+                    <input type="text" onChange={usernameChange} value={username} />
+                </label>
+                <label>
+                    Enter Message:
+                    <input type="text" onChange={messageChange} value={message} />
+                </label>
+                <label>
+                    <input type="button" value="Send Message" onClick={sendMessage} />
+                </label>
             </div>
         </div>
     );
