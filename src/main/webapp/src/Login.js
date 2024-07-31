@@ -31,7 +31,11 @@ export default function Login() {
                 }
                 return response.text();
             })
-            .then(data => {localStorage.setItem("token", "Bearer " + data); navigate("/Home", {replace : true})})
+            .then(data => {
+                localStorage.setItem("token", "Bearer " + data);
+                localStorage.setItem("username", username);
+                navigate("/Home", {replace : true});
+            })
             .catch(error => handleError(error));
     }
   return (
