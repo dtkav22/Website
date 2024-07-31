@@ -14,14 +14,14 @@ public class ProfileController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/username/{username}")
-    public String sendFriendReq(@PathVariable("username") String username){
-        String msg = userService.sendFriendReq(username);
-        return msg;
-    }
-
-    @PostMapping("/{username}/{accepted}")
-    public String requestAnswer(@PathVariable("username") String username, @PathVariable("accepted") boolean accepted){
-        return userService.requestAnswer(username, accepted);
-    }
+//    @PostMapping("/username/{username}")
+//    public String sendFriendReq(@PathVariable("username") String username){
+//        String msg = userService.sendFriendReq(username);
+//        return msg;
+//    }
+//
+//    @PostMapping("/{username}/{accepted}")
+//    public String requestAnswer(@PathVariable("username") String username, @PathVariable("accepted") boolean accepted){
+//        return userService.requestAnswer(username, accepted);
+//    }
 }
