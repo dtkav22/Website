@@ -30,7 +30,7 @@ public class UserController {
 	@Autowired
 	AuthenticationManager authenticationManager;
 	
-	@PostMapping("register")
+	@PostMapping("/register")
 	public User register(@RequestBody User user) {
 		try {
 			return service.saveUser(user);
@@ -38,7 +38,8 @@ public class UserController {
 			return null;
 		}
 	}
-	@PostMapping("login")
+
+	@PostMapping("/login")
 	public String login(@RequestBody User user, HttpServletRequest request){
 
 		Authentication authentication = authenticationManager
