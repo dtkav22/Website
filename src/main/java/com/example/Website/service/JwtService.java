@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +24,11 @@ public class JwtService {
 
     private static final String SECRET = "TmV3U2VjcmV0S2V5Rm9ySldUU2lnbmluZ1B1cnBvc2VzMTIzNDU2Nzg=\r\n";
 
-    private String secretKey;
+    private static String secretKey;
 
     public JwtService(){
-        secretKey = generateSecretKey();
+        if(secretKey == null)
+            secretKey = generateSecretKey();
     }
 
     public String generateSecretKey() {
@@ -74,9 +76,9 @@ public class JwtService {
     }
 
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token, String username) {
         final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return (userName.equals(username) && !isTokenExpired(token));
     }
 
     private boolean isTokenExpired(String token) {

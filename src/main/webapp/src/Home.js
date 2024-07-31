@@ -21,7 +21,8 @@ export default function Home() {
         }
         stompClientRef.current = client;
         const headers = {
-            "Authorization": localStorage.getItem("token")
+            "Authorization": localStorage.getItem("token"),
+            "Username": localStorage.getItem("username")
         };
 
         client.connect(
@@ -59,8 +60,8 @@ export default function Home() {
     const sendMessage = () => {
         if (message.trim() && stompClientRef.current) {
             const chatMessage = {
-                "sender": username,
-                "receiver": username, // Adjust as needed
+                "sender": localStorage.getItem("username"),
+                "receiver": username,
                 "message": message
             };
             stompClientRef.current.send('/app/chat', {}, JSON.stringify(chatMessage));
