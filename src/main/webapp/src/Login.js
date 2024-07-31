@@ -33,6 +33,7 @@ export default function Login() {
             })
             .then(data => {localStorage.setItem("token", "Bearer " + data); navigate("/Home", {replace : true})})
             .catch(error => handleError(error));
+        localStorage.setItem('username', username);
     }
   return (
       <div className="App">
