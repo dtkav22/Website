@@ -1,19 +1,17 @@
 package com.example.Website.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.*;
+import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.Date;
 
 
 @Data
-@Table(name = ("messages"))
+@Table(name = "messages")
 @Entity
-@ToString
 public class Message {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String sender;
     private String receiver;
