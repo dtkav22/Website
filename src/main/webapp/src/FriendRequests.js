@@ -1,17 +1,29 @@
 import { useEffect, useState } from "react";
+import Friends from "./Friends";
 
 export default function FriendRequests({ stompClientRef }) {
     const [requests, setRequests] = useState([]);
-
+    const [newFriend, setNewFriend] = useState(null);
     useEffect(() => {
         if (stompClientRef.current) {
             const subscription = stompClientRef.current.subscribe(
                 `/topic/requests/${localStorage.getItem("username")}`,
                 (request) => {
-                    const newRequest = JSON.parse(request.body);
-                    setRequests((prevRequests) => [...prevRequests, newRequest]);
+                    console.log(request.body);
+                    setRequests((prevRequests) => [...prevRequests, request.body]);
                 }
             );
+
+            fetch(`http://localhost:8080/friendRequests/${localStorage.getItem("username")}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `${localStorage.getItem("token")}`,
+                }
+            })
+                .then(response => response.json())
+                .then(data => setRequests(data))
+                .catch(error => console.error('Error:', error));
 
             // Cleanup function to unsubscribe
             return () => {
@@ -33,20 +45,24 @@ export default function FriendRequests({ stompClientRef }) {
                 alert(message);
             })
             .catch(error => console.error('Error:', error));
-        setRequests((prevRequests) => prevRequests.filter((req) => req.sender !== sender));
+        setRequests((prevRequests) => prevRequests.filter((req) => req !== sender));
+        setNewFriend(sender);
     };
 
     return (
-        <div style={{display: "flex", alignItems: "center"}}>
-            Friend Requests:
-            {requests.map((value, index) => (
-                <p key={index}>
-                    {value.sender}
-                    <input type="button" value="Accept" onClick={() => friendRequestAnswer(true, value.sender)}/>
-                    <input type="button" value="Reject" onClick={() => friendRequestAnswer(false, value.sender)}/>
-                    <br/>
-                </p>
-            ))}
+        <div>
+            <p>Friend Requests:</p>
+            <div>
+                {requests.map((value, index) => (
+                    <p key={index}>
+                        {value}
+                        <input type="button" value="Accept" onClick={() => friendRequestAnswer(true, value)}/>
+                        <input type="button" value="Reject" onClick={() => friendRequestAnswer(false, value)}/>
+                        <br/>
+                    </p>
+                ))}
+            </div>
+            <Friends newFriend={newFriend}/>
         </div>
     );
 }

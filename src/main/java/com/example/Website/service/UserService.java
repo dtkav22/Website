@@ -9,6 +9,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
+
 
 @Service
 public class UserService {
@@ -25,6 +27,8 @@ public class UserService {
 	public User findByUsername(String username) {
 		return repo.findByUsername(username);
 	}
+
+	public List<String> getFriends(String username){ return repo.findByUsername(username).getFriends(); }
 
 	public User getUser(String username) {
 		return repo.findByUsername(username);
@@ -59,4 +63,7 @@ public class UserService {
         return "You rejected friend request from " + username;
 	}
 
+	public List<String> getFriendRequests(String username) {
+		return repo.findByUsername(username).getFriendRequests();
+	}
 }

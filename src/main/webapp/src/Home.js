@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import Stomp from "stompjs";
 import SockJS from "sockjs-client";
 import FriendRequests from "./FriendRequests";
+import Friends from "./Friends";
 
 export default function Home() {
     const [friendName, setFriendName] = useState("");
@@ -74,8 +75,8 @@ export default function Home() {
     const sendFriendRequest = () => {
         if (friendName.trim() && stompClientRef.current) {
             const friendRequest = {
-                "sender": localStorage.getItem("username"),
-                "receiver": friendName
+                "username1": localStorage.getItem("username"),
+                "username2": friendName
             };
             stompClientRef.current.send('/app/friendRequest', {}, JSON.stringify(friendRequest));
         }
@@ -98,7 +99,7 @@ export default function Home() {
                     <input type="button" value="Send" onClick={trySendingFriendRequest}/>
                 </label>
             </div>
-            {isConnected && <FriendRequests stompClientRef={stompClientRef} />} {/* Render FriendRequests only when connected */}
+            {isConnected && <FriendRequests stompClientRef={stompClientRef}/>}
             <input id="logOut" type="button" onClick={logOut} value="Log-Out"/>
         </div>
     );
