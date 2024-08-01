@@ -44,13 +44,11 @@ export default function Chat({ stompClientRef, receiverUsername }) {
         fetchChatHistory();
 
         const subscription = stompClientRef.current.subscribe(
-            `/topic/messages/${localStorage.getItem("username")}`,
+            `/topic/messages/${localStorage.getItem("username")}/${receiverUsername}`,
             (message) => {
                 const receivedMessage = JSON.parse(message.body);
                 console.log(receivedMessage);
-                if (receivedMessage.sender === receiverUsername) {
-                    setChatMessages((prevMessages) => [...prevMessages, receivedMessage]);
-                }
+                setChatMessages((prevMessages) => [...prevMessages, receivedMessage]);
             }
         );
 
@@ -59,7 +57,7 @@ export default function Chat({ stompClientRef, receiverUsername }) {
                 subscription.unsubscribe();
             }
         };
-    }, [receiverUsername]);
+    }, [receiverUsername, stompClientRef]);
 
     return (
         <div>
