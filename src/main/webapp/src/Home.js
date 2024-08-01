@@ -2,13 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import Stomp from "stompjs";
 import SockJS from "sockjs-client";
+import FriendRequests from "./FriendRequests";
 
 export default function Home() {
-    const [message, setMessage] = useState("");
-    const [messages, setMessages] = useState([]);
-    const [username, setUsername] = useState("");
-    const [requests, setRequests] = useState([]);
     const [friendName, setFriendName] = useState("");
+    const [isConnected, setIsConnected] = useState(false); // State to track connection status
     const stompClientRef = useRef(null); // Use ref to persist stompClient across renders
 
     useEffect(() => {
@@ -16,12 +14,16 @@ export default function Home() {
             document.getElementById("logOut").click();
             return;
         }
+
         const socket = new SockJS("http://localhost:8080/ws");
         const client = Stomp.over(socket);
-        if(stompClientRef.current) {
+
+        if (stompClientRef.current) {
             return;
         }
+
         stompClientRef.current = client;
+
         const headers = {
             "Authorization": localStorage.getItem("token"),
             "Username": localStorage.getItem("username")
@@ -31,14 +33,7 @@ export default function Home() {
             headers,
             () => {
                 console.log('Connected to WebSocket');
-                client.subscribe(`/topic/messages/${localStorage.getItem("username")}`, (message) => {
-                    const receivedMessage = JSON.parse(message.body);
-                    setMessages((prevMessages) => [...prevMessages, receivedMessage]);
-                });
-                client.subscribe(`/topic/requests/${localStorage.getItem("username")}`, (request) => {
-                    const newRequest = JSON.parse(request.body);
-                    setRequests((prevRequests) => [...prevRequests, newRequest]);
-                });
+                setIsConnected(true); // Set connection status to true on successful connection
             },
             (error) => {
                 console.error('Error connecting to WebSocket', error);
@@ -51,72 +46,42 @@ export default function Home() {
                     console.log('Disconnected from WebSocket');
                 });
                 stompClientRef.current = null;
+                setIsConnected(false); // Set connection status to false on disconnection
             }
         };
     }, []);
-
-    const usernameChange = (e) => {
-        setUsername(e.target.value);
-    };
-
-    const messageChange = (e) => {
-        setMessage(e.target.value);
-    };
 
     const friendNameChange = (e) => {
         setFriendName(e.target.value);
     };
 
-    const sendMessage = () => {
-        if (message.trim() && stompClientRef.current) {
-            const chatMessage = {
-                "sender": localStorage.getItem("username"),
-                "receiver": username,
-                "message": message
-            };
-            stompClientRef.current.send('/app/chat', {}, JSON.stringify(chatMessage));
-            setMessage("");
-        }
+    const trySendingFriendRequest = () => {
+        fetch(`http://localhost:8080/request/${localStorage.getItem("username")}/${friendName}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${localStorage.getItem("token")}`,
+            }
+        })
+            .then(response => response.text())
+            .then(message => {
+                alert(message);
+                if (message === "Friend request sent") sendFriendRequest();
+            })
+            .catch(error => console.error('Error:', error));
     };
-    const sendRequest = () => {
-        if(friendName.trim() && stompClientRef.current){
+
+    const sendFriendRequest = () => {
+        if (friendName.trim() && stompClientRef.current) {
             const friendRequest = {
-                "sender" : localStorage.getItem("username"),
-                "receiver" : friendName
+                "sender": localStorage.getItem("username"),
+                "receiver": friendName
             };
             stompClientRef.current.send('/app/friendRequest', {}, JSON.stringify(friendRequest));
-            setFriendName("");
-            fetch(`http://localhost:8080/request/${friendRequest.sender}/${friendRequest.receiver}`, {
-                   method: 'POST',
-                   headers: {
-                       'Content-Type': 'application/json',
-                       'Authorization': `${localStorage.getItem("token")}`,
-                   }
-               })
-                   .then(response => response.text())
-                   .then(message => {
-                       alert(message);
-                       //setNotifications(prevNotifications => prevNotifications.filter(notification => notification !== notificationMessage));
-                   })
-                   .catch(error => console.error('Error:', error));
-           }
+        }
+        setFriendName("");
     };
-    const requestAnswer = (accept, sender) => {
-          fetch(`http://localhost:8080/request/${localStorage.getItem("username")}/${sender}/${accept}`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `${localStorage.getItem("token")}`,
-              }
-          })
-              .then(response => response.text())
-              .then(message => {
-                  alert(message);
-                  //setNotifications(prevNotifications => prevNotifications.filter(notification => notification !== notificationMessage));
-              })
-              .catch(error => console.error('Error:', error));
-          setRequests((prevRequests) => prevRequests.filter((req) => req.sender !== sender));
-    };
+
     const navigate = useNavigate();
     const logOut = (e) => {
         e.preventDefault();
@@ -130,38 +95,10 @@ export default function Home() {
                 <label>
                     Send Friend Request:
                     <input type="text" onChange={friendNameChange} value={friendName}/>
-                    <input type="button" value="Send" onClick={sendRequest}/>
+                    <input type="button" value="Send" onClick={trySendingFriendRequest}/>
                 </label>
             </div>
-            <div style={{display: "flex", alignItems: "center"}}>
-                <label>
-                    Enter Username:
-                    <input type="text" onChange={usernameChange} value={username}/>
-                </label>
-                <label>
-                    Enter Message:
-                    <input type="text" onChange={messageChange} value={message}/>
-                </label>
-                <label>
-                    <input type="button" value="Send Message" onClick={sendMessage}/>
-                </label>
-            </div>
-            <div style={{display: "flex", alignItems: "center"}}>
-                Friend Requests:
-                {requests.map((value, index) => (
-                    <p key={index}>
-                        {value.sender}
-                        <input type="button" value="Accept" onClick={requestAnswer.bind(null, true, value.sender)}/>
-                        <input type="button" value="Reject" onClick={requestAnswer.bind(null, true, value.sender)}/>
-                        <br/>
-                    </p>
-                ))}
-            </div>
-            <div id="chat">
-                {messages.map((val, index) => (
-                    <p key={index}>{val.sender}: {val.message}</p>
-                ))}
-            </div>
+            {isConnected && <FriendRequests stompClientRef={stompClientRef} />} {/* Render FriendRequests only when connected */}
             <input id="logOut" type="button" onClick={logOut} value="Log-Out"/>
         </div>
     );

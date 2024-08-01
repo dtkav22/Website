@@ -37,6 +37,7 @@ public class UserService {
 		if (user==null) return "Could not find user";
 		if(currentUser.containsFriend(username)) return "This user is already friend";
 		if(currentUser.containsRequest(username)) return "This user has already sent request to you";
+		if(user.containsRequest(currentUsername)) return "You already sent request to that user";
 
 		user.addRequest(currentUsername);
 		repo.save(user);
