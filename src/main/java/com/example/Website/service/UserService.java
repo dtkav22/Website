@@ -17,10 +17,6 @@ public class UserService {
 	private UserRepo repo;
 	private BCryptPasswordEncoder encoder=new BCryptPasswordEncoder(12);
 
-	public String getCurrentUsername() {
-		return SecurityContextHolder.getContext().getAuthentication().getName();
-	}
-
 	public User saveUser(User user) {
 		user.setPassword(encoder.encode(user.getPassword()));
 		return repo.save(user) ;
@@ -34,34 +30,31 @@ public class UserService {
 		return repo.findByUsername(username);
 	}
 
-	public String sendFriendReq(String username){
+	public String sendFriendReq(String currentUsername, String username){
 		User user = getUser(username);
-		String currentUsername = getCurrentUsername();
 		User currentUser = getUser(currentUsername);
 
 		if (user==null) return "Could not find user";
 		if(currentUser.containsFriend(username)) return "This user is already friend";
-		if(currentUser.containsRequest(username)) return requestAnswer(username, true);
+		if(currentUser.containsRequest(username)) return "This user has already sent request to you";
 
 		user.addRequest(currentUsername);
 		repo.save(user);
-		User user2 = getUser(username);
-		System.out.println(user2.toString());
 		return "Friend request sent";
 	}
 
-	public String requestAnswer(String username, boolean accepted){
-		String currentUsername = getCurrentUsername();
+	public String requestAnswer(String currentUsername, String username, boolean accepted){
 		User currentUser = getUser(currentUsername);
 		currentUser.removeRequest(username);
 		if(accepted) {
-			User otherUser = getUser(username);
+			User user = getUser(username);
 			currentUser.addFriends(username);
-			otherUser.addFriends(currentUsername);
-			repo.save(otherUser);
+			user.addFriends(currentUsername);
+			repo.save(user);
 			repo.save(currentUser);
 			return "You and " + username + " become friends";
 		}
+		repo.save(currentUser);
         return "You rejected friend request from " + username;
 	}
 

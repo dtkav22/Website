@@ -7,6 +7,8 @@ export default function Home() {
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const [username, setUsername] = useState("");
+    const [requests, setRequests] = useState([]);
+    const [friendName, setFriendName] = useState("");
     const stompClientRef = useRef(null); // Use ref to persist stompClient across renders
 
     useEffect(() => {
@@ -33,6 +35,10 @@ export default function Home() {
                     const receivedMessage = JSON.parse(message.body);
                     setMessages((prevMessages) => [...prevMessages, receivedMessage]);
                 });
+                client.subscribe(`/topic/requests/${localStorage.getItem("username")}`, (request) => {
+                    const newRequest = JSON.parse(request.body);
+                    setRequests((prevRequests) => [...prevRequests, newRequest]);
+                });
             },
             (error) => {
                 console.error('Error connecting to WebSocket', error);
@@ -57,6 +63,10 @@ export default function Home() {
         setMessage(e.target.value);
     };
 
+    const friendNameChange = (e) => {
+        setFriendName(e.target.value);
+    };
+
     const sendMessage = () => {
         if (message.trim() && stompClientRef.current) {
             const chatMessage = {
@@ -68,7 +78,45 @@ export default function Home() {
             setMessage("");
         }
     };
-
+    const sendRequest = () => {
+        if(friendName.trim() && stompClientRef.current){
+            const friendRequest = {
+                "sender" : localStorage.getItem("username"),
+                "receiver" : friendName
+            };
+            stompClientRef.current.send('/app/friendRequest', {}, JSON.stringify(friendRequest));
+            setFriendName("");
+            fetch(`http://localhost:8080/request/${friendRequest.sender}/${friendRequest.receiver}`, {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'Authorization': `${localStorage.getItem("token")}`,
+                   }
+               })
+                   .then(response => response.text())
+                   .then(message => {
+                       alert(message);
+                       //setNotifications(prevNotifications => prevNotifications.filter(notification => notification !== notificationMessage));
+                   })
+                   .catch(error => console.error('Error:', error));
+           }
+    };
+    const requestAnswer = (accept, sender) => {
+          fetch(`http://localhost:8080/request/${localStorage.getItem("username")}/${sender}/${accept}`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `${localStorage.getItem("token")}`,
+              }
+          })
+              .then(response => response.text())
+              .then(message => {
+                  alert(message);
+                  //setNotifications(prevNotifications => prevNotifications.filter(notification => notification !== notificationMessage));
+              })
+              .catch(error => console.error('Error:', error));
+          setRequests((prevRequests) => prevRequests.filter((req) => req.sender !== sender));
+    };
     const navigate = useNavigate();
     const logOut = (e) => {
         e.preventDefault();
@@ -78,25 +126,43 @@ export default function Home() {
 
     return (
         <div className="App">
-            <input id="logOut" type="button" onClick={logOut} value="Log-Out" />
+            <div style={{display: "flex", alignItems: "center"}}>
+                <label>
+                    Send Friend Request:
+                    <input type="text" onChange={friendNameChange} value={friendName}/>
+                    <input type="button" value="Send" onClick={sendRequest}/>
+                </label>
+            </div>
+            <div style={{display: "flex", alignItems: "center"}}>
+                <label>
+                    Enter Username:
+                    <input type="text" onChange={usernameChange} value={username}/>
+                </label>
+                <label>
+                    Enter Message:
+                    <input type="text" onChange={messageChange} value={message}/>
+                </label>
+                <label>
+                    <input type="button" value="Send Message" onClick={sendMessage}/>
+                </label>
+            </div>
+            <div style={{display: "flex", alignItems: "center"}}>
+                Friend Requests:
+                {requests.map((value, index) => (
+                    <p key={index}>
+                        {value.sender}
+                        <input type="button" value="Accept" onClick={requestAnswer.bind(null, true, value.sender)}/>
+                        <input type="button" value="Reject" onClick={requestAnswer.bind(null, true, value.sender)}/>
+                        <br/>
+                    </p>
+                ))}
+            </div>
             <div id="chat">
                 {messages.map((val, index) => (
                     <p key={index}>{val.sender}: {val.message}</p>
                 ))}
             </div>
-            <div style={{ display: "flex", alignItems: "center" }}>
-                <label>
-                    Enter Username:
-                    <input type="text" onChange={usernameChange} value={username} />
-                </label>
-                <label>
-                    Enter Message:
-                    <input type="text" onChange={messageChange} value={message} />
-                </label>
-                <label>
-                    <input type="button" value="Send Message" onClick={sendMessage} />
-                </label>
-            </div>
+            <input id="logOut" type="button" onClick={logOut} value="Log-Out"/>
         </div>
     );
 }
