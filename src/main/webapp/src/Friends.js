@@ -43,6 +43,8 @@ export default function Friends({newFriend, stompClientRef}){
                     receiverUsername={username}
                 />,
             ]);
+        } else if(!openChat) {
+            setChats(chats.filter(chat => chat.props.receiverUsername !== username));
         }
     }
     return (
