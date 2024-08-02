@@ -28,7 +28,7 @@ public class ChatController {
     public void sendMessage(@RequestBody Message message) {
         message.setTimestamp(new Date());
         service.save(message);
-        String destination = "/topic/messages/" + message.getReceiver();
+        String destination = "/topic/messages/" + message.getReceiver() + "/" + message.getSender();
         messagingTemplate.convertAndSend(destination, message);
     }
 

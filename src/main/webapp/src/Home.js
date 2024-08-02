@@ -15,19 +15,16 @@ export default function Home() {
             document.getElementById("logOut").click();
             return;
         }
-
         const socket = new SockJS("http://localhost:8080/ws");
         const client = Stomp.over(socket);
-
         if (stompClientRef.current) {
             return;
         }
-
         stompClientRef.current = client;
 
         const headers = {
-            "Authorization": localStorage.getItem("token"),
-            "Username": localStorage.getItem("username")
+            Authorization: localStorage.getItem("token"),
+            Username: localStorage.getItem("username"),
         };
 
         client.connect(
@@ -37,14 +34,14 @@ export default function Home() {
                 setIsConnected(true); // Set connection status to true on successful connection
             },
             (error) => {
-                console.error('Error connecting to WebSocket', error);
+                console.error("Error connecting to WebSocket", error);
             }
         );
 
         return () => {
             if (stompClientRef.current && stompClientRef.current.connected) {
                 stompClientRef.current.disconnect(() => {
-                    console.log('Disconnected from WebSocket');
+                    console.log("Disconnected from WebSocket");
                 });
                 stompClientRef.current = null;
                 setIsConnected(false); // Set connection status to false on disconnection

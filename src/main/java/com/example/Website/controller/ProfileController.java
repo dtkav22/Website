@@ -14,7 +14,7 @@ public class ProfileController {
 
     @Autowired
     private UserService userService;
-
+  
     @GetMapping("/friendRequests/{username}")
     public List<String> getFriendRequests(@PathVariable String username) {
         return userService.getFriendRequests(username);
