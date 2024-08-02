@@ -7,8 +7,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -30,11 +28,14 @@ public class FriendRequestController {
         String username1 = payload.get("username1");
         String username2 = payload.get("username2");
         String destination = "/topic/requests/" + username2;
-        System.out.println(destination);
         messagingTemplate.convertAndSend(destination, username1);
     }
-
+    @MessageMapping("/friendRequestAccepted")
+    public void sendNewFriend(@Payload Map<String, String> payload) {
+        String acceptor = payload.get("acceptor");
+        String friendRequestSender = payload.get("friendRequestSender");
+        String destination = "/topic/newFriend/" + friendRequestSender;
+        messagingTemplate.convertAndSend(destination, acceptor);
+    }
 
 }
-
-

@@ -46,7 +46,7 @@ export default function FriendRequests({ stompClientRef }) {
             })
             .catch(error => console.error('Error:', error));
         setRequests((prevRequests) => prevRequests.filter((req) => req !== sender));
-        setNewFriend(sender);
+       if(accept) setNewFriend(sender);
     };
 
     return (

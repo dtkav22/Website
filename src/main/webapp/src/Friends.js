@@ -17,11 +17,29 @@ export default function Friends({newFriend, stompClientRef}){
             })
             .catch(error => console.error('Error:', error));
     }, []);
+
     useEffect(() => {
         if(newFriend) {
             setFriends((prevState) => [...prevState, newFriend]);
+            const data = {
+                "friendRequestSender": newFriend,
+                "acceptor": localStorage.getItem("username")
+            }
+            stompClientRef.current.send('/app/friendRequestAccepted', {}, JSON.stringify(data));
         }
     }, [newFriend]);
+
+    useEffect(() => {
+        const subscription = stompClientRef.current.subscribe(
+            `/topic/newFriend/${localStorage.getItem("username")}`,
+            (request) => {
+                setFriends((prevState) => [...prevState, request.body]);
+            }
+        );
+        return () => {
+            if (subscription) subscription.unsubscribe();
+        };
+    }, [stompClientRef]);
 
     useEffect(() => {
         setChats([]);

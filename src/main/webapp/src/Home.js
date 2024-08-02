@@ -89,6 +89,7 @@ export default function Home() {
 
     return (
         <div className="App">
+            <h1>Username: {localStorage.getItem("username")}</h1>
             <div style={{display: "flex", alignItems: "center"}}>
                 <label>
                     Send Friend Request:
