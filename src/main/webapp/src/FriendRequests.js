@@ -62,7 +62,7 @@ export default function FriendRequests({ stompClientRef }) {
                     </p>
                 ))}
             </div>
-            <Friends newFriend={newFriend}/>
+            <Friends newFriend={newFriend} stompClientRef={stompClientRef}/>
         </div>
     );
 }
