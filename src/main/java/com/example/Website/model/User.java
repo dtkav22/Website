@@ -48,4 +48,12 @@ public class User {
 	public boolean containsFriend(String username){
 		return friends.contains(username);
 	}
+
+	public List<String> getFriends() {
+		return friends;
+	}
+
+	public List<String> getFriendRequests() {
+		return requests;
+	}
 }
