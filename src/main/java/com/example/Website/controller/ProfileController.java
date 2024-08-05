@@ -14,7 +14,7 @@ public class ProfileController {
 
     @Autowired
     private UserService userService;
-  
+
     @GetMapping("/friendRequests/{username}")
     public List<String> getFriendRequests(@PathVariable String username) {
         return userService.getFriendRequests(username);
@@ -23,6 +23,12 @@ public class ProfileController {
     @GetMapping("/friends/{username}")
     public List<String> getFriends(@PathVariable String username){
         return userService.getFriends(username);
+    }
+
+    @DeleteMapping("/removeFriend/{username1}/{username2}")
+    public void removeFriend(@PathVariable String username1, @PathVariable String username2 ){
+        userService.removeFriend(username1, username2);
+        userService.removeFriend(username2,username1);
     }
 
     @PostMapping("/request/{username1}/{username2}")

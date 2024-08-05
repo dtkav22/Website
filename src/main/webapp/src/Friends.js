@@ -27,7 +27,7 @@ export default function Friends({newFriend, stompClientRef}){
             }
             stompClientRef.current.send('/app/friendRequestAccepted', {}, JSON.stringify(data));
         }
-    }, [newFriend]);
+    }, [newFriend, stompClientRef]);
 
     useEffect(() => {
         const subscription = stompClientRef.current.subscribe(
@@ -65,6 +65,37 @@ export default function Friends({newFriend, stompClientRef}){
             setChats(chats.filter(chat => chat.props.receiverUsername !== username));
         }
     }
+    const deleteFriend = (username) => {
+        fetch(`http://localhost:8080/removeFriend/${localStorage.getItem("username")}/${username}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${localStorage.getItem("token")}`,
+            }
+        })
+            .then(() => {
+                setFriends(prevFriends => prevFriends.filter(friend => friend !== username));
+                const data = {
+                    exFriend: username,
+                    user: localStorage.getItem("username")
+                };
+                stompClientRef.current.send('/app/removeFriend', {}, JSON.stringify(data));
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    useEffect(() => {
+        const subscription = stompClientRef.current.subscribe(
+            `/topic/removeFriend/${localStorage.getItem("username")}`,
+            (username) => {
+                setFriends((prevState) => prevState.filter(friend => friend !== username.body));
+            }
+        );
+        return () => {
+            if (subscription) subscription.unsubscribe();
+        };
+    }, [stompClientRef]);
+
     return (
         <div>
             <p>Friends:</p>
@@ -72,6 +103,7 @@ export default function Friends({newFriend, stompClientRef}){
                 <p key={index}>
                     <strong>{friend}</strong>
                     <input type="button" value="Chat" onClick={() => addChat(friend)}/>
+                    <input type="button" value="Delete" onClick={() => deleteFriend(friend)}/>
                 </p>
             ))}
             <div id={"Chats"}>

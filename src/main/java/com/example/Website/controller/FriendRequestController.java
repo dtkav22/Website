@@ -37,5 +37,12 @@ public class FriendRequestController {
         String destination = "/topic/newFriend/" + friendRequestSender;
         messagingTemplate.convertAndSend(destination, acceptor);
     }
+    @MessageMapping("/removeFriend")
+    public void removeFriend(@Payload Map<String, String> payload){
+        String exFriend = payload.get("exFriend");
+        String user = payload.get("user");
+        String destination = "/topic/removeFriend/" + exFriend;
+        messagingTemplate.convertAndSend(destination, user);
+    }
 
 }

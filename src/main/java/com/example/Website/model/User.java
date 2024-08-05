@@ -29,31 +29,4 @@ public class User {
 	@Column(name = "friend")
 	private List<String> friends = new ArrayList<>();
 
-	public void addRequest(String request) {
-		requests.add(request);
-	}
-
-	public void removeRequest(String username){
-        requests.removeIf(name -> name.equals(username));
-	}
-
-	public boolean containsRequest(String username) {
-		return requests.contains(username);
-	}
-
-	public void addFriends(String friend) {
-		friends.add(friend);
-	}
-
-	public boolean containsFriend(String username){
-		return friends.contains(username);
-	}
-
-	public List<String> getFriends() {
-		return friends;
-	}
-
-	public List<String> getFriendRequests() {
-		return requests;
-	}
 }
