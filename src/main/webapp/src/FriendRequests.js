@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import Friends from "./Friends";
+import './FriendRequests.css';
 
 export default function FriendRequests({ stompClientRef }) {
     const [requests, setRequests] = useState([]);
     const [newFriend, setNewFriend] = useState(null);
+
     useEffect(() => {
         if (stompClientRef.current) {
             const subscription = stompClientRef.current.subscribe(
@@ -25,7 +27,6 @@ export default function FriendRequests({ stompClientRef }) {
                 .then(data => setRequests(data))
                 .catch(error => console.error('Error:', error));
 
-            // Cleanup function to unsubscribe
             return () => {
                 if (subscription) subscription.unsubscribe();
             };
@@ -46,23 +47,24 @@ export default function FriendRequests({ stompClientRef }) {
             })
             .catch(error => console.error('Error:', error));
         setRequests((prevRequests) => prevRequests.filter((req) => req !== sender));
-       if(accept) setNewFriend(sender);
+        if (accept) setNewFriend(sender);
     };
 
     return (
-        <div>
-            <p>Friend Requests:</p>
+        <div className="friend-requests-container">
+            <div className="friend-requests-header">Friend Requests:</div>
             <div>
                 {requests.map((value, index) => (
-                    <p key={index}>
+                    <div key={index} className="friend-request-item">
                         {value}
-                        <input type="button" value="Accept" onClick={() => friendRequestAnswer(true, value)}/>
-                        <input type="button" value="Reject" onClick={() => friendRequestAnswer(false, value)}/>
-                        <br/>
-                    </p>
+                        <button className="accept-button" onClick={() => friendRequestAnswer(true, value)}>Accept</button>
+                        <button className="reject-button" onClick={() => friendRequestAnswer(false, value)}>Reject</button>
+                    </div>
                 ))}
             </div>
-            <Friends newFriend={newFriend} stompClientRef={stompClientRef}/>
+            <div className="friend-requests-footer">
+                <Friends newFriend={newFriend} stompClientRef={stompClientRef}/>
+            </div>
         </div>
     );
 }

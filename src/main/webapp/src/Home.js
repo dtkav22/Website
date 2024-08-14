@@ -3,12 +3,12 @@ import { useEffect, useState, useRef } from "react";
 import Stomp from "stompjs";
 import SockJS from "sockjs-client";
 import FriendRequests from "./FriendRequests";
-import Friends from "./Friends";
+import './Home.css';
 
 export default function Home() {
     const [friendName, setFriendName] = useState("");
-    const [isConnected, setIsConnected] = useState(false); // State to track connection status
-    const stompClientRef = useRef(null); // Use ref to persist stompClient across renders
+    const [isConnected, setIsConnected] = useState(false);
+    const stompClientRef = useRef(null);
 
     useEffect(() => {
         if (!localStorage.getItem("token")) {
@@ -31,7 +31,7 @@ export default function Home() {
             headers,
             () => {
                 console.log('Connected to WebSocket');
-                setIsConnected(true); // Set connection status to true on successful connection
+                setIsConnected(true);
             },
             (error) => {
                 console.error("Error connecting to WebSocket", error);
@@ -44,7 +44,7 @@ export default function Home() {
                     console.log("Disconnected from WebSocket");
                 });
                 stompClientRef.current = null;
-                setIsConnected(false); // Set connection status to false on disconnection
+                setIsConnected(false);
             }
         };
     }, []);
@@ -67,6 +67,7 @@ export default function Home() {
                 if (message === "Friend request sent") sendFriendRequest();
             })
             .catch(error => console.error('Error:', error));
+        setFriendName("");
     };
 
     const sendFriendRequest = () => {
@@ -77,7 +78,13 @@ export default function Home() {
             };
             stompClientRef.current.send('/app/friendRequest', {}, JSON.stringify(friendRequest));
         }
-        setFriendName("");
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent the default action (e.g., form submission)
+            trySendingFriendRequest();
+        }
     };
 
     const navigate = useNavigate();
@@ -90,15 +97,25 @@ export default function Home() {
     return (
         <div className="App">
             <h1>Username: {localStorage.getItem("username")}</h1>
-            <div style={{display: "flex", alignItems: "center"}}>
+            <div className="friend-request-container">
                 <label>
                     Send Friend Request:
-                    <input type="text" onChange={friendNameChange} value={friendName}/>
-                    <input type="button" value="Send" onClick={trySendingFriendRequest}/>
+                    <input
+                        type="text"
+                        onChange={friendNameChange}
+                        value={friendName}
+                        onKeyDown={handleKeyDown}
+                    />
+                    <input
+                        className="send-button"
+                        type="button"
+                        value="Send"
+                        onClick={trySendingFriendRequest}
+                    />
                 </label>
             </div>
-            {isConnected && <FriendRequests stompClientRef={stompClientRef}/>}
-            <input id="logOut" type="button" onClick={logOut} value="Log-Out"/>
+            {isConnected && <FriendRequests stompClientRef={stompClientRef} />}
+            <input id="logOut" className="logout-button" type="button" onClick={logOut} value="Log-Out" />
         </div>
     );
 }

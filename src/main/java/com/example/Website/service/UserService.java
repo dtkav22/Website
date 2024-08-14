@@ -39,6 +39,8 @@ public class UserService {
 	}
 
 	public String sendFriendReq(String currentUsername, String username) {
+		if(currentUsername.equals(username)) return "You can't send request to yourself";
+
 		User user = findByUsername(username).orElse(null);
 		User currentUser = findByUsername(currentUsername).orElse(null);
 

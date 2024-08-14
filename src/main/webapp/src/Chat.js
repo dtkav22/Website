@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import './Chat.css';
 
-export default function Chat({ stompClientRef, receiverUsername }) {
+export default function Chat({ stompClientRef, receiverUsername, closeChat }) {
     const [message, setMessage] = useState("");
     const [chatMessages, setChatMessages] = useState([]);
+    const messagesEndRef = useRef(null);
+    const chatMessagesRef = useRef(null);
 
     const messageChange = (e) => {
         setMessage(e.target.value);
@@ -18,6 +23,13 @@ export default function Chat({ stompClientRef, receiverUsername }) {
             stompClientRef.current.send('/app/chat', {}, JSON.stringify(chatMessage));
             setChatMessages((prevMessages) => [...prevMessages, chatMessage]);
             setMessage("");
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent new line from being added
+            sendMessage();
         }
     };
 
@@ -47,7 +59,6 @@ export default function Chat({ stompClientRef, receiverUsername }) {
             `/topic/messages/${localStorage.getItem("username")}/${receiverUsername}`,
             (message) => {
                 const receivedMessage = JSON.parse(message.body);
-                console.log(receivedMessage);
                 setChatMessages((prevMessages) => [...prevMessages, receivedMessage]);
             }
         );
@@ -59,23 +70,38 @@ export default function Chat({ stompClientRef, receiverUsername }) {
         };
     }, [receiverUsername, stompClientRef]);
 
+    useEffect(() => {
+        if (chatMessagesRef.current) {
+            chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+        }
+    }, [chatMessages]);
+
     return (
-        <div>
-            <p>{receiverUsername}</p>
-            <div>
+        <div className="chat-container">
+            <div className="chat-header">
+                <strong>{receiverUsername}</strong>
+                <button className="close-chat-button" onClick={() => closeChat(receiverUsername)}>
+                    <FontAwesomeIcon icon={faTimes} />
+                </button>
+            </div>
+            <div className="chat-messages" ref={chatMessagesRef}>
                 {chatMessages.map((msg, index) => (
-                    <div key={index}>
-                        <strong>{msg.sender}: </strong>{msg.message}
+                    <div key={index} className={`message ${msg.sender === localStorage.getItem("username") ? 'sent' : ''}`}>
+                        <strong>{msg.sender}:</strong> {msg.message}
                     </div>
                 ))}
+                <div ref={messagesEndRef} />
             </div>
-            <input
-                type="text"
-                value={message}
-                onChange={messageChange}
-                placeholder="Type a message"
-            />
-            <button onClick={sendMessage}>Send</button>
+            <div className="chat-input">
+                <input
+                    type="text"
+                    value={message}
+                    onChange={messageChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message"
+                />
+                <button onClick={sendMessage}>Send</button>
+            </div>
         </div>
     );
 }

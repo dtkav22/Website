@@ -50,8 +50,10 @@ export default function Register() {
                 </ol>
                 <ol>
                     Password: <input type="password" onChange={(e) => setPassword(e.target.value)} required/>
+                    <span>  </span>
+                    <input type={"submit"} value={"Register"}/>
                 </ol>
-                <input type={"submit"} value={"Register"}/>
+                <a href={"/"}>Login</a>
             </form>
         </div>
     );

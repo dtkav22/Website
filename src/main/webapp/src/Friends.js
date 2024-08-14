@@ -1,8 +1,11 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import Chat from "./Chat";
-export default function Friends({newFriend, stompClientRef}){
+import './Friends.css';
+
+export default function Friends({ newFriend, stompClientRef }) {
     const [friends, setFriends] = useState([]);
     const [chats, setChats] = useState([]);
+
     useEffect(() => {
         fetch(`http://localhost:8080/friends/${localStorage.getItem("username")}`, {
             method: 'GET',
@@ -19,12 +22,12 @@ export default function Friends({newFriend, stompClientRef}){
     }, []);
 
     useEffect(() => {
-        if(newFriend) {
+        if (newFriend) {
             setFriends((prevState) => [...prevState, newFriend]);
             const data = {
                 "friendRequestSender": newFriend,
                 "acceptor": localStorage.getItem("username")
-            }
+            };
             stompClientRef.current.send('/app/friendRequestAccepted', {}, JSON.stringify(data));
         }
     }, [newFriend, stompClientRef]);
@@ -51,20 +54,26 @@ export default function Friends({newFriend, stompClientRef}){
                 return previousValue && (chat.props.receiverUsername !== username);
             },
             true
-        )
-        if(openChat && username !== localStorage.getItem("username")) {
+        );
+        if (openChat && username !== localStorage.getItem("username")) {
             setChats((prevChats) => [
                 ...prevChats,
                 <Chat
                     key={prevChats.length}
                     stompClientRef={stompClientRef}
                     receiverUsername={username}
+                    closeChat={removeChat}
                 />,
             ]);
-        } else if(!openChat) {
+        } else if (!openChat) {
             setChats(chats.filter(chat => chat.props.receiverUsername !== username));
         }
-    }
+    };
+
+    const removeChat = (username) => {
+        setChats((prevChats) => prevChats.filter(chat => chat.props.receiverUsername !== username));
+    };
+
     const deleteFriend = (username) => {
         fetch(`http://localhost:8080/removeFriend/${localStorage.getItem("username")}/${username}`, {
             method: 'DELETE',
@@ -82,7 +91,7 @@ export default function Friends({newFriend, stompClientRef}){
                 stompClientRef.current.send('/app/removeFriend', {}, JSON.stringify(data));
             })
             .catch(error => console.error('Error:', error));
-    }
+    };
 
     useEffect(() => {
         const subscription = stompClientRef.current.subscribe(
@@ -97,16 +106,18 @@ export default function Friends({newFriend, stompClientRef}){
     }, [stompClientRef]);
 
     return (
-        <div>
-            <p>Friends:</p>
-            {friends.map((friend, index) => (
-                <p key={index}>
-                    <strong>{friend}</strong>
-                    <input type="button" value="Chat" onClick={() => addChat(friend)}/>
-                    <input type="button" value="Delete" onClick={() => deleteFriend(friend)}/>
-                </p>
-            ))}
-            <div id={"Chats"}>
+        <div className="friends-container">
+            <div className="friends-header">Friends:</div>
+            <div>
+                {friends.map((friend, index) => (
+                    <div key={index} className="friend-item">
+                        <strong>{friend}</strong>
+                        <input className="chat-button" type="button" value="Chat" onClick={() => addChat(friend)} />
+                        <input className="delete-button" type="button" value="Delete" onClick={() => deleteFriend(friend)} />
+                    </div>
+                ))}
+            </div>
+            <div className="chats-container">
                 {chats}
             </div>
         </div>
