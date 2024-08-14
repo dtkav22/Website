@@ -1,5 +1,3 @@
 Website
 
-Best Project Ever
-
-Hello
+run WebsiteApplication and "start" in /src/main/webapp/package.json
