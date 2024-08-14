@@ -27,7 +27,7 @@ The application leverages WebSockets to provide live updates and interactions wi
 ## Demo Video
 Check out the demo video of the project:
 
-[![Watch the video](https://youtu.be/57VvCOS6KUo)
+[![Watch the video](https://img.youtube.com/vi/57VvCOS6KUo/hqdefault.jpg)](https://youtu.be/57VvCOS6KUo)
 
 ## How It Works
 - **WebSocket Configuration:** The application uses WebSockets to enable real-time features such as chat and friend requests. This allows users to see updates and messages instantly without refreshing the page.
